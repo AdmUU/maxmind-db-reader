@@ -8,7 +8,6 @@ use MaxMind\Db\Reader\Decoder;
 use MaxMind\Db\Reader\InvalidDatabaseException;
 use MaxMind\Db\Reader\Metadata;
 use MaxMind\Db\Reader\Util;
-use Hyperf\Di\Annotation\Inject;
 
 /**
  * @Inject(scope="singleton")
@@ -17,7 +16,6 @@ use Hyperf\Di\Annotation\Inject;
  * Instances of this class provide a reader for the MaxMind DB format. IP
  * addresses can be looked up using the get method.
  */
-#[Inject(second: 1)]
 class Reader
 {
     /**
@@ -63,9 +61,11 @@ class Reader
     /**
      * @var Metadata
      */
-    private $metadata;    /**
- * @var Metadata
- */
+    private $metadata;
+
+    /**
+     * @var String
+     */
     private $contentBuff;
 
     /**
@@ -97,17 +97,18 @@ class Reader
             );
         }
         $this->fileSize = $fileSize;
-
+        $this->contentBuff = &$buff;
         $start = $this->findMetadataStart($database);
-        $metadataDecoder = new Decoder($this->fileHandle, $start);
+        $metadataDecoder = new Decoder($this->fileHandle, $start, false, $this->contentBuff);
         [$metadataArray] = $metadataDecoder->decode($start);
         $this->metadata = new Metadata($metadataArray);
         $this->decoder = new Decoder(
             $this->fileHandle,
-            $this->metadata->searchTreeSize + self::$DATA_SECTION_SEPARATOR_SIZE
+            $this->metadata->searchTreeSize + self::$DATA_SECTION_SEPARATOR_SIZE,
+            false,
+            $this->contentBuff
         );
         $this->ipV4Start = $this->ipV4StartNode();
-        $this->contentBuff = $buff;
     }
 
     /**
@@ -244,13 +245,14 @@ class Reader
         for ($i = 0; $i < 96 && $node < $this->metadata->nodeCount; ++$i) {
             $node = $this->readNode($node, 0);
         }
-
         return $node;
     }
 
     private function readNode(int $nodeNumber, int $index): int
     {
         $baseOffset = $nodeNumber * $this->metadata->nodeByteSize;
+
+
 
         switch ($this->metadata->recordSize) {
             case 24:

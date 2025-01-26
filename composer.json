@@ -1,15 +1,15 @@
 {
     "name": "webmaster/maxmind-db-reader",
-    "description": "MaxMind DB Reader API",
-    "keywords": ["database", "geoip", "geoip2", "geolocation", "maxmind"],
-    "homepage": "https://github.com/maxmind/MaxMind-DB-Reader-php",
+    "description": "This is the MaxMind DB Reader for Hyperf or other resident process framework. It preloads the entire mmdb file into memory, with the memory usage equal to the size of the mmdb file. It has no disk IO operations and maintains query efficiency at the microsecond level.",
+    "keywords": ["database", "geoip", "geoip2", "geolocation", "maxmind", "hyperf"],
+    "homepage": "https://github.com/AdmUU/maxmind-db-reader",
     "type": "library",
     "license": "Apache-2.0",
     "authors": [
         {
-            "name": "Gregory J. Oschwald",
-            "email": "goschwald@maxmind.com",
-            "homepage": "https://www.maxmind.com/"
+            "name": "AdmUU",
+            "email": "dev@admin.im",
+            "homepage": "https://www.admin.im"
         }
     ],
     "require": {

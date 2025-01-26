@@ -30,6 +30,11 @@ class Decoder
      */
     private $switchByteOrder;
 
+    /**
+     * @var String
+     */
+    private $contentBuff;
+
     private const _EXTENDED = 0;
     private const _POINTER = 1;
     private const _UTF8_STRING = 2;
@@ -53,7 +58,8 @@ class Decoder
     public function __construct(
         $fileStream,
         int $pointerBase = 0,
-        bool $pointerTestHack = false
+        bool $pointerTestHack = false,
+        ?string $buff = null
     ) {
         $this->fileStream = $fileStream;
         $this->pointerBase = $pointerBase;
@@ -61,11 +67,12 @@ class Decoder
         $this->pointerTestHack = $pointerTestHack;
 
         $this->switchByteOrder = $this->isPlatformLittleEndian();
+        $this->contentBuff = $buff;
     }
 
     public function decode(int $offset): array
     {
-        $ctrlByte = \ord(Util::read($this->fileStream, $offset, 1));
+        $ctrlByte = \ord(Util::read($this->fileStream, $offset, 1, $this->contentBuff));
         ++$offset;
 
         $type = $ctrlByte >> 5;
@@ -87,7 +94,7 @@ class Decoder
         }
 
         if ($type === self::_EXTENDED) {
-            $nextByte = \ord(Util::read($this->fileStream, $offset, 1));
+            $nextByte = \ord(Util::read($this->fileStream, $offset, 1, $this->contentBuff));
 
             $type = $nextByte + 7;
 
@@ -125,7 +132,7 @@ class Decoder
         }
 
         $newOffset = $offset + $size;
-        $bytes = Util::read($this->fileStream, $offset, $size);
+        $bytes = Util::read($this->fileStream, $offset, $size, $this->contentBuff);
 
         switch ($type) {
             case self::_BYTES:
@@ -264,7 +271,7 @@ class Decoder
     {
         $pointerSize = (($ctrlByte >> 3) & 0x3) + 1;
 
-        $buffer = Util::read($this->fileStream, $offset, $pointerSize);
+        $buffer = Util::read($this->fileStream, $offset, $pointerSize, $this->contentBuff);
         $offset += $pointerSize;
 
         switch ($pointerSize) {
@@ -387,7 +394,7 @@ class Decoder
         }
 
         $bytesToRead = $size - 28;
-        $bytes = Util::read($this->fileStream, $offset, $bytesToRead);
+        $bytes = Util::read($this->fileStream, $offset, $bytesToRead, $this->contentBuff);
 
         if ($size === 29) {
             $size = 29 + \ord($bytes);
